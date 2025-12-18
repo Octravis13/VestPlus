@@ -48,7 +48,7 @@ document.getElementById("cadastroForm")?.addEventListener("submit", async (e) =>
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/auth/cadastro", {
+    const res = await fetch("/api/auth/cadastro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
