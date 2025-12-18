@@ -1,13 +1,14 @@
 const mysql = require("mysql2/promise")
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  port: process.env.MYSQL_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-})
+const pool = mysql.createPool(process.env.MYSQL_URL)
 
 module.exports = pool
+
+pool.getConnection()
+  .then(conn => {
+    console.log("✅ MySQL conectado via MYSQL_URL")
+    conn.release()
+  })
+  .catch(err => {
+    console.error("❌ Erro MySQL:", err)
+  })
