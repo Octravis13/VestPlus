@@ -32,9 +32,8 @@ app.use(express.json({ limit: "50mb" }))
 // SERVIR ARQUIVOS ESTÁTICOS (FRONT)
 app.use(express.static(path.join(__dirname, "public")))
 
-// ROTA RAIZ (health check)
 app.get("/", (req, res) => {
-  res.send("API VestPlus rodando 🚀")
+  res.sendFile(path.join(__dirname, "public", "login.html"))
 })
 
 // TOKEN
