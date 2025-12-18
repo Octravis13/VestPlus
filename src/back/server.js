@@ -5,8 +5,8 @@ const jwt = require("jsonwebtoken")
 const db = require("./db")
 
 const app = express()
-const PORT = 3000
-const JWT_SECRET = "chave_teste_vest"
+const PORT = process.env.PORT || 3000
+const JWT_SECRET = process.env.JWT_SECRET
 const CODIGO_ACESSO_ADMIN = "VEST-ADMIN-2025"
 
 // ADM FIXO
@@ -370,6 +370,5 @@ app.delete("/api/produtos/:id", verificarToken, async (req, res) => {
 
 // SERVER
 app.listen(PORT, () => {
-  console.log("✅ Servidor rodando em http://localhost:3000")
-  console.log("🔑 Admin login: admin@vestplus.com / admin123")
+  console.log(`✅ Servidor rodando na porta ${PORT}`)
 })
