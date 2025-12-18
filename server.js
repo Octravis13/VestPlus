@@ -1,3 +1,4 @@
+const path = require("path")
 const express = require("express")
 const cors = require("cors")
 const bcrypt = require("bcrypt")
@@ -27,6 +28,9 @@ app.use(
 )
 
 app.use(express.json({ limit: "50mb" }))
+
+// SERVIR ARQUIVOS ESTÁTICOS (FRONT)
+app.use(express.static(path.join(__dirname, "public")))
 
 // ROTA RAIZ (health check)
 app.get("/", (req, res) => {
@@ -371,6 +375,11 @@ app.delete("/api/produtos/:id", verificarToken, async (req, res) => {
     console.error(err)
     res.status(500).json({ erro: "Erro ao excluir produto" })
   }
+})
+
+// ROTA RAIZ / FALLBACK
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"))
 })
 
 // SERVER
