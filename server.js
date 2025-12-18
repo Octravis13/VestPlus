@@ -377,11 +377,6 @@ app.delete("/api/produtos/:id", verificarToken, async (req, res) => {
   }
 })
 
-// ROTA RAIZ / FALLBACK
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"))
-})
-
 // SERVER
 app.listen(PORT, () => {
   console.log(`✅ Servidor rodando na porta ${PORT}`)
