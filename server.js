@@ -28,6 +28,11 @@ app.use(
 
 app.use(express.json({ limit: "50mb" }))
 
+// ROTA RAIZ (health check)
+app.get("/", (req, res) => {
+  res.send("API VestPlus rodando 🚀")
+})
+
 // TOKEN
 function verificarToken(req, res, next) {
   const token = req.headers.authorization?.replace("Bearer ", "")
