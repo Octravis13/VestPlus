@@ -2,17 +2,41 @@ const mysql = require("mysql2/promise")
 
 let pool
 
-if (process.env.MYSQL_URL) {
-  console.log("[DB] Conectando usando MYSQL_URL (Railway internal)")
+if (process.env.MYSQL_DATABASE && process.env.MYSQL_ROOT_PASSWORD) {
+  console.log("[DB] Conectando usando variáveis do Railway MySQL")
 
-  // Parsear a URL para extrair as credenciais
+  const dbConfig = {
+    host: process.env.MYSQL_URL ? new URL(process.env.MYSQL_URL).hostname : "mysql-1j98.railway.internal", // fallback para host interno
+    user: "root", // Railway MySQL sempre usa root como usuário
+    password: process.env.MYSQL_ROOT_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+    port: process.env.MYSQL_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  }
+
+  pool = mysql.createPool(dbConfig)
+
+  console.log(`[DB] Host: ${dbConfig.host}`)
+  console.log(`[DB] Port: ${dbConfig.port}`)
+  console.log(`[DB] Database: ${dbConfig.database}`)
+  console.log(`[DB] User: ${dbConfig.user}`)
+} else if (process.env.MYSQL_URL) {
+  console.log("[DB] Conectando usando MYSQL_URL")
+
   const url = new URL(process.env.MYSQL_URL)
 
   pool = mysql.createPool({
     host: url.hostname,
-    user: url.username,
+    user: url.username || "root", // fallback para root se username estiver vazio
     password: url.password,
-    database: url.pathname.substring(1), // Remove a barra inicial
+    database: url.pathname.substring(1),
     port: url.port || 3306,
     waitForConnections: true,
     connectionLimit: 10,
@@ -27,27 +51,7 @@ if (process.env.MYSQL_URL) {
   console.log(`[DB] Host: ${url.hostname}`)
   console.log(`[DB] Port: ${url.port || 3306}`)
   console.log(`[DB] Database: ${url.pathname.substring(1)}`)
-  console.log(`[DB] User: ${url.username}`)
-} else if (process.env.MYSQL_PUBLIC_URL) {
-  console.log("[DB] Conectando usando MYSQL_PUBLIC_URL")
-
-  const url = new URL(process.env.MYSQL_PUBLIC_URL)
-
-  pool = mysql.createPool({
-    host: url.hostname,
-    user: url.username,
-    password: url.password,
-    database: url.pathname.substring(1),
-    port: url.port || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 0,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  })
+  console.log(`[DB] User: ${url.username || "root"}`)
 } else if (process.env.MYSQL_HOST) {
   console.log("[DB] Conectando usando variáveis individuais")
 
@@ -74,8 +78,8 @@ if (process.env.MYSQL_URL) {
 } else {
   console.error("[DB] ERRO: Nenhuma variável de ambiente MySQL encontrada!")
   console.error("[DB] Configure uma das opções:")
-  console.error("[DB] - MYSQL_URL (recomendado para Railway)")
-  console.error("[DB] - MYSQL_PUBLIC_URL")
+  console.error("[DB] - MYSQL_DATABASE e MYSQL_ROOT_PASSWORD (Railway)")
+  console.error("[DB] - MYSQL_URL")
   console.error("[DB] - MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE")
   process.exit(1)
 }
