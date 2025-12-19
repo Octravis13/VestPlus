@@ -1,6 +1,7 @@
 const mysql = require("mysql2/promise")
 
 let pool
+let poolPromise
 
 async function ensureDatabaseExists() {
   let tempPool
@@ -9,7 +10,6 @@ async function ensureDatabaseExists() {
     if (process.env.MYSQL_DATABASE && process.env.MYSQL_ROOT_PASSWORD) {
       console.log("[DB] Verificando se banco de dados existe...")
 
-      // Conectar SEM especificar database
       const tempConfig = {
         host: process.env.MYSQL_URL ? new URL(process.env.MYSQL_URL).hostname : "mysql-1j98.railway.internal",
         user: "root",
@@ -23,7 +23,6 @@ async function ensureDatabaseExists() {
       tempPool = mysql.createPool(tempConfig)
       const connection = await tempPool.getConnection()
 
-      // Criar banco de dados se não existir
       await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.MYSQL_DATABASE}\``)
       console.log(`[DB] ✓ Banco de dados '${process.env.MYSQL_DATABASE}' verificado/criado`)
 
@@ -38,6 +37,8 @@ async function ensureDatabaseExists() {
 }
 
 async function initializePool() {
+  if (pool) return pool
+
   await ensureDatabaseExists()
 
   if (process.env.MYSQL_DATABASE && process.env.MYSQL_ROOT_PASSWORD) {
@@ -72,7 +73,7 @@ async function initializePool() {
 
     pool = mysql.createPool({
       host: url.hostname,
-      user: url.username || "root", // fallback para root se username estiver vazio
+      user: url.username || "root",
       password: url.password,
       database: url.pathname.substring(1),
       port: url.port || 3306,
@@ -121,6 +122,10 @@ async function initializePool() {
     console.error("[DB] - MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE")
     process.exit(1)
   }
+
+  await testConnection()
+
+  return pool
 }
 
 async function testConnection(retries = 3) {
@@ -149,14 +154,14 @@ async function testConnection(retries = 3) {
     }
   }
   console.error("[DB] ERRO: Não foi possível conectar ao MySQL após várias tentativas")
-  return false
+  throw new Error("Falha na conexão com MySQL")
 }
 
-initializePool()
-  .then(() => testConnection())
-  .catch((err) => {
-    console.error("[DB] Erro fatal na inicialização:", err)
-    process.exit(1)
-  })
+poolPromise = initializePool()
 
-module.exports = pool
+async function getPool() {
+  await poolPromise
+  return pool
+}
+
+module.exports = getPool()
