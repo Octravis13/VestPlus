@@ -1,6 +1,7 @@
 module.exports = {
-  host: "localhost",
-  user: "root",
-  password: "", 
-  database: "vest_plus_db",
+  host: process.env.MYSQL_HOST || "localhost",
+  user: process.env.MYSQL_USER || "root",
+  password: process.env.MYSQL_PASSWORD || "",
+  database: process.env.MYSQL_DATABASE || "vest_plus_db",
+  port: process.env.MYSQL_PORT || 3306,
 }
