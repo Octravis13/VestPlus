@@ -1,4 +1,4 @@
-const mysql = require("mysql2/promise")
+const mysql = require("mysql2")
 
 let dbConfig
 
@@ -43,15 +43,14 @@ console.log("[DB] User:", dbConfig.user)
 const pool = mysql.createPool(dbConfig)
 
 // Testar conexão em background (não bloqueia a exportação)
-pool
-  .getConnection()
-  .then((connection) => {
-    console.log("[DB] ✓ MySQL conectado com sucesso!")
-    connection.release()
-  })
-  .catch((err) => {
+pool.getConnection((err, connection) => {
+  if (err) {
     console.error("[DB] ERRO: Não foi possível conectar ao MySQL após várias tentativas")
     console.error("[DB] Erro:", err.message)
-  })
+  } else {
+    console.log("[DB] ✓ MySQL conectado com sucesso!")
+    connection.release()
+  }
+})
 
 module.exports = pool
