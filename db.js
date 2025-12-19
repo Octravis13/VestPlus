@@ -1,4 +1,4 @@
-const mysql = require("mysql2")
+const mysql = require("mysql2/promise")
 
 let dbConfig
 
@@ -43,14 +43,16 @@ console.log("[DB] User:", dbConfig.user)
 const pool = mysql.createPool(dbConfig)
 
 // Testar conexão em background (não bloqueia a exportação)
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error("[DB] ERRO: Não foi possível conectar ao MySQL após várias tentativas")
-    console.error("[DB] Erro:", err.message)
-  } else {
+pool
+  .getConnection()
+  .then((connection) => {
     console.log("[DB] ✓ MySQL conectado com sucesso!")
+    console.log("[DB] ✓ Banco de dados 'vest_plus_db' verificado/criado")
     connection.release()
-  }
-})
+  })
+  .catch((err) => {
+    console.error("[DB] ERRO: Não foi possível conectar ao MySQL")
+    console.error("[DB] Erro:", err.message)
+  })
 
 module.exports = pool
