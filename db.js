@@ -2,36 +2,55 @@ const mysql = require("mysql2/promise")
 
 let pool
 
-// Tentar usar MYSQL_URL (URL interna do Railway) primeiro
 if (process.env.MYSQL_URL) {
   console.log("[DB] Conectando usando MYSQL_URL (Railway internal)")
+
+  // Parsear a URL para extrair as credenciais
+  const url = new URL(process.env.MYSQL_URL)
+
   pool = mysql.createPool({
-    uri: process.env.MYSQL_URL,
+    host: url.hostname,
+    user: url.username,
+    password: url.password,
+    database: url.pathname.substring(1), // Remove a barra inicial
+    port: url.port || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
     ssl: {
-      rejectUnauthorized: false, // Railway requer SSL
+      rejectUnauthorized: false,
     },
   })
+
+  console.log(`[DB] Host: ${url.hostname}`)
+  console.log(`[DB] Port: ${url.port || 3306}`)
+  console.log(`[DB] Database: ${url.pathname.substring(1)}`)
+  console.log(`[DB] User: ${url.username}`)
 } else if (process.env.MYSQL_PUBLIC_URL) {
   console.log("[DB] Conectando usando MYSQL_PUBLIC_URL")
+
+  const url = new URL(process.env.MYSQL_PUBLIC_URL)
+
   pool = mysql.createPool({
-    uri: process.env.MYSQL_PUBLIC_URL,
+    host: url.hostname,
+    user: url.username,
+    password: url.password,
+    database: url.pathname.substring(1),
+    port: url.port || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
     ssl: {
-      rejectUnauthorized: false, // Railway requer SSL
+      rejectUnauthorized: false,
     },
   })
 } else if (process.env.MYSQL_HOST) {
-  // Fallback para variáveis individuais
   console.log("[DB] Conectando usando variáveis individuais")
+
   if (!process.env.MYSQL_USER || !process.env.MYSQL_PASSWORD || !process.env.MYSQL_DATABASE) {
     console.error("[DB] ERRO: Variáveis MYSQL_USER, MYSQL_PASSWORD e MYSQL_DATABASE são obrigatórias!")
     process.exit(1)
@@ -49,7 +68,7 @@ if (process.env.MYSQL_URL) {
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
     ssl: {
-      rejectUnauthorized: false, // Railway requer SSL
+      rejectUnauthorized: false,
     },
   })
 } else {
